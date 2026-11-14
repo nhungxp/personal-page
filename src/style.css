@@ -1,0 +1,735 @@
+/* ---------- Farger og fonter: endre her ---------- */
+:root {
+  --night: #070605;
+  --chalk: #e9dfcc;
+  --cream: #f3ead8;
+  --ink: #1f1a17;
+  --paper: #fff4e6;
+  --lit-bg: #ffcfa3; /* bakgrunn når lyset er tent. Prøv #ffe27a, #bdefd8 eller #d8ccff */
+  --accent: #e2482b; /* bølgestrek og knappeskygge. Prøv #3d5afe, #00a86b eller #c2185b */
+  --accent-text: #b8321a;
+  --flame: #ffb547;
+  --muted: #a99f8c;
+
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Fredoka', 'Inter', sans-serif;
+  --font-hand: 'Caveat', cursive;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--lit-bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.is-locked {
+  overflow: hidden;
+  background: var(--night);
+}
+
+button {
+  font: inherit;
+}
+
+/* ---------- Scenen ---------- */
+.scene {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background-color: var(--night);
+  color: var(--cream);
+  transition: background-color 1.8s ease;
+  touch-action: none;
+  user-select: none;
+}
+
+.scene[data-step='3'] {
+  background-color: var(--lit-bg);
+  touch-action: auto;
+}
+
+.scene__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  background: radial-gradient(
+    circle 700px at var(--candle-x, 50%) var(--candle-y, 50%),
+    rgba(255, 248, 226, 0.75),
+    rgba(255, 248, 226, 0.2) 45%,
+    rgba(255, 248, 226, 0) 100%
+  );
+}
+
+.scene[data-step='3'] .scene__glow {
+  opacity: 1;
+}
+
+.scene__dark {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: rgba(7, 6, 5, 0.985);
+  transition: opacity 1.6s ease;
+}
+
+.scene[data-step='3'] .scene__dark {
+  opacity: 0;
+}
+
+.scene__matchglow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: none;
+}
+
+.scene[data-step='2'] .scene__matchglow {
+  display: block;
+}
+
+.scene__counter,
+.scene__skip {
+  position: absolute;
+  z-index: 7;
+  top: 22px;
+  margin: 0;
+  padding: 12px 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.scene__counter {
+  left: 32px;
+  display: none;
+}
+
+.scene[data-step='1'] .scene__counter,
+.scene[data-step='2'] .scene__counter {
+  display: block;
+}
+
+.scene__skip {
+  right: 32px;
+  text-decoration: none;
+}
+
+.scene__skip:hover {
+  color: var(--cream);
+}
+
+.scene[data-step='3'] .scene__skip {
+  display: none;
+}
+
+.scene__reset {
+  position: absolute;
+  z-index: 7;
+  right: 32px;
+  bottom: 32px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: none;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.scene[data-step='3'] .scene__reset {
+  visibility: visible;
+  opacity: 1;
+  animation: fadeIn 1s ease 1.3s both;
+}
+
+/* ---------- Ting i mørket ---------- */
+.item {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+
+.item:hover,
+.item:focus-visible {
+  filter: drop-shadow(0 0 10px rgba(255, 190, 110, 0.55));
+}
+
+.item--decoy {
+  width: 84px;
+  height: 84px;
+}
+
+.item--decoy svg {
+  display: block;
+  margin: 2px;
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.item--decoy .dot {
+  fill: var(--chalk);
+  stroke: none;
+}
+
+/* Når lyset er tent forsvinner alt unntatt lyset */
+.scene[data-step='3'] .item--decoy,
+.scene[data-step='3'] .item--matches {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Fyrstikkeske */
+.item--matches {
+  width: 150px;
+  height: 70px;
+  transform: translate(-50%, -50%) rotate(-6deg);
+}
+
+.matchbox {
+  position: absolute;
+  left: 0;
+  bottom: 10px;
+  width: 86px;
+  height: 36px;
+  border-radius: 4px;
+  background: #4a2f22;
+  border-left: 6px solid #2b1c14;
+}
+
+.matchbox__label {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  top: 9px;
+  height: 16px;
+  border-radius: 2px;
+  background: #b2412e;
+}
+
+.match {
+  position: absolute;
+  left: 82px;
+  bottom: 16px;
+  width: 58px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d8b98a;
+  transform: rotate(-8deg);
+  transform-origin: left center;
+}
+
+.match__head {
+  position: absolute;
+  left: 135px;
+  bottom: 22px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a8321f;
+}
+
+/* Stearinlys */
+.item--candle {
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -60%);
+}
+
+.candle__flame-wrap {
+  width: 40px;
+  height: 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.candle__flame {
+  width: 18px;
+  height: 36px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 50% 72%, #fff7dc 0%, var(--flame) 48%, rgba(255, 110, 40, 0.85) 100%);
+  box-shadow: 0 0 28px 8px rgba(255, 170, 80, 0.45);
+  opacity: 0;
+  transform-origin: 50% 90%;
+}
+
+.scene[data-step='3'] .candle__flame {
+  opacity: 1;
+  animation: flicker 1.6s ease-in-out infinite;
+}
+
+.candle__wick {
+  width: 3px;
+  height: 12px;
+  background: #3a2e24;
+  border-radius: 2px;
+}
+
+.candle__body {
+  width: 46px;
+  height: 96px;
+  border-radius: 7px 7px 4px 4px;
+  background: linear-gradient(90deg, #e2d5bb, #fbf3e2 45%, #d6c7aa);
+}
+
+.candle__holder {
+  width: 100px;
+  height: 16px;
+  border-radius: 50%;
+  background: #2c241d;
+  margin-top: -5px;
+}
+
+/* ---------- Fyrstikkpersonen ---------- */
+.figure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  width: 86px;
+  padding: 8px;
+  background: none;
+  border: 0;
+  border-radius: 20px;
+  cursor: pointer;
+  color: var(--chalk);
+  transition: color 1.4s ease;
+  will-change: transform;
+}
+
+.scene[data-step='3'] .figure {
+  color: var(--ink);
+}
+
+.figure__body {
+  display: block;
+}
+
+.figure svg {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.figure .eye {
+  fill: currentColor;
+  stroke: none;
+}
+
+.figure .match-stick {
+  stroke: #c8a26a;
+  stroke-width: 3;
+}
+
+.figure .match-head {
+  fill: #a8321f;
+  stroke: none;
+}
+
+.figure .match-flame {
+  fill: var(--flame);
+  stroke: none;
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: flicker 1.6s ease-in-out infinite;
+}
+
+.figure .pose,
+.figure .smile {
+  display: none;
+}
+
+.figure[data-pose='down'] .pose--down,
+.figure[data-pose='match'] .pose--match,
+.figure[data-pose='wave'] .pose--wave {
+  display: inline;
+}
+
+.scene[data-step='3'] .figure .smile {
+  display: inline;
+}
+
+.figure.is-walking .leg-a,
+.figure.is-walking .arm-front {
+  animation: swingA 0.5s ease-in-out infinite;
+  transform-box: view-box;
+  transform-origin: 50px 108px;
+}
+
+.figure.is-walking .leg-b {
+  animation: swingB 0.5s ease-in-out infinite;
+  transform-box: view-box;
+  transform-origin: 50px 108px;
+}
+
+.figure.is-walking .arm-back {
+  animation: swingB 0.5s ease-in-out infinite;
+  transform-box: view-box;
+  transform-origin: 50px 64px;
+}
+
+.figure.is-walking .arm-front {
+  transform-origin: 50px 64px;
+}
+
+.figure.is-walking .figure__body svg {
+  animation: bob 0.25s ease-in-out infinite;
+}
+
+.figure__pulse {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  border-radius: 50%;
+  display: none;
+}
+
+.scene[data-step='0'] .figure__pulse {
+  display: block;
+  animation: pulse 2s ease-out infinite;
+}
+
+/* ---------- Snakkeboble ---------- */
+.bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: max-content;
+  max-width: 290px;
+  padding: 12px 18px;
+  border-radius: 18px;
+  background: var(--cream);
+  color: #1b1612;
+  font-family: var(--font-hand);
+  font-size: 26px;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+.bubble[data-corner='bl'] { border-bottom-left-radius: 4px; }
+.bubble[data-corner='br'] { border-bottom-right-radius: 4px; }
+.bubble[data-corner='tl'] { border-top-left-radius: 4px; }
+.bubble[data-corner='tr'] { border-top-right-radius: 4px; }
+
+.scene[data-step='3'] .bubble {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ---------- Intro-tekst ---------- */
+.hero {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  width: 680px;
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  visibility: hidden;
+}
+
+.scene[data-step='3'] .hero {
+  visibility: visible;
+}
+
+.scene[data-step='3'] .hero > * {
+  animation: fadeUp 0.9s ease both;
+}
+
+.scene[data-step='3'] .hero > :nth-child(2) { animation-delay: 0.5s; }
+.scene[data-step='3'] .hero > :nth-child(3) { animation-delay: 0.9s; }
+.scene[data-step='3'] .hero > :nth-child(4) { animation-delay: 1.3s; }
+
+.hero__kicker {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-text);
+  rotate: -3deg;
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(44px, 7.5vw, 76px);
+  line-height: 1.04;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.hero__name {
+  position: relative;
+  white-space: nowrap;
+}
+
+.hero__name svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -12px;
+  width: 100%;
+  height: 18px;
+  overflow: visible;
+}
+
+.hero__name path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.hero__lead {
+  margin: 8px 0 0;
+  font-size: 20px;
+  line-height: 1.55;
+  color: #3d322a;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.hero__actions--left {
+  justify-content: flex-start;
+}
+
+/* Klistremerke-knapper */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translate(-2px, -2px) rotate(0deg);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn--primary {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 4px 4px 0 var(--accent);
+  rotate: -2deg;
+}
+
+.btn--primary:hover {
+  box-shadow: 6px 6px 0 var(--accent);
+}
+
+.btn--tilt-r { rotate: 1.5deg; }
+.btn--tilt-l { rotate: -1deg; }
+
+/* ---------- Resten av siden ---------- */
+.content {
+  background: var(--lit-bg);
+}
+
+body.is-locked .content {
+  display: none;
+}
+
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 96px 32px;
+}
+
+.section__kicker {
+  margin: 0 0 8px;
+  font-family: var(--font-hand);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.section__title {
+  margin: 0 0 32px;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.section__text {
+  max-width: 640px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: #3d322a;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 28px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:nth-child(odd) { rotate: -1deg; }
+.card:nth-child(even) { rotate: 1deg; }
+
+.card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--accent);
+}
+
+.card__img {
+  height: 150px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(135deg, #f1e3cf 0 8px, #e8d6bd 8px 16px);
+}
+
+.card__tag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.card__text {
+  font-size: 15px;
+  line-height: 1.45;
+  color: #5a4a3e;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------- Animasjoner ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1, 1) rotate(-1deg); }
+  25% { transform: scale(0.93, 1.07) rotate(1.5deg); }
+  50% { transform: scale(1.04, 0.95) rotate(-2deg); }
+  75% { transform: scale(0.97, 1.04) rotate(1deg); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(243, 234, 216, 0.35); }
+  70% { box-shadow: 0 0 0 24px rgba(243, 234, 216, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 234, 216, 0); }
+}
+
+@keyframes swingA {
+  0%, 100% { transform: rotate(22deg); }
+  50% { transform: rotate(-22deg); }
+}
+
+@keyframes swingB {
+  0%, 100% { transform: rotate(-22deg); }
+  50% { transform: rotate(22deg); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

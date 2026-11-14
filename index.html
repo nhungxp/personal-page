@@ -1,12 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <h1>Website coming soon...</h1>
-</head>
-<body>
-    
-</body>
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhung Pham · Portefølje</title>
+    <meta
+      name="description"
+      content="Portefølje for Nhung Pham, masterstudent i Interaction Design, Gaming and Learning Technology ved NTNU."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="is-locked">
+    <!-- ============ INTRO: skattejakt i mørket ============ -->
+    <section id="scene" class="scene" data-step="0" aria-label="Intro">
+      <div class="scene__glow" aria-hidden="true"></div>
+
+      <!-- Ting som ligger spredt i mørket (fylles inn av src/main.js) -->
+      <div id="items"></div>
+
+      <button id="matches" class="item item--matches" type="button" aria-label="Fyrstikker">
+        <span class="matchbox"><span class="matchbox__label"></span></span>
+        <span class="match"></span>
+        <span class="match__head"></span>
+      </button>
+
+      <button id="candle" class="item item--candle" type="button" aria-label="Stearinlys">
+        <span class="candle__flame-wrap"><span class="candle__flame"></span></span>
+        <span class="candle__wick"></span>
+        <span class="candle__body"></span>
+        <span class="candle__holder"></span>
+      </button>
+
+      <div id="matchglow" class="scene__matchglow" aria-hidden="true"></div>
+      <div id="dark" class="scene__dark" aria-hidden="true"></div>
+
+      <p id="counter" class="scene__counter"></p>
+      <a id="skip" class="scene__skip" href="#hjem">Hopp over intro</a>
+
+      <div id="hjem" class="hero">
+        <p class="hero__kicker">psst, du fant meg!</p>
+        <h1 class="hero__title">
+          Hei, jeg heter
+          <span class="hero__name"
+            >Nhung Pham<svg aria-hidden="true" viewBox="0 0 300 18" preserveAspectRatio="none">
+              <path d="M4 12 Q22 2 40 12 T76 12 T112 12 T148 12 T184 12 T220 12 T256 12 T292 12" /></svg></span
+          >.
+        </h1>
+        <p class="hero__lead">
+          Masterstudent i informatikk ved NTNU, med fordypning i Interaction Design, Gaming and
+          Learning Technology. [EN SETNING OM HVA DU LIKER Å LAGE]
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#prosjekter">Se prosjektene</a>
+          <a class="btn btn--tilt-r" href="#om">Om meg</a>
+          <a class="btn btn--tilt-l" href="#kontakt">Kontakt</a>
+        </div>
+      </div>
+
+      <!-- Fyrstikkpersonen -->
+      <button id="figure" class="figure" type="button" aria-label="Fyrstikkpersonen" data-pose="down">
+        <span class="figure__pulse" aria-hidden="true"></span>
+        <span class="figure__body">
+          <svg viewBox="0 0 100 170" width="70" height="119" aria-hidden="true">
+            <circle cx="50" cy="28" r="18" />
+            <line x1="50" y1="46" x2="50" y2="108" />
+            <line class="arm-back" x1="50" y1="64" x2="26" y2="94" />
+            <g class="pose pose--down"><line class="arm-front" x1="50" y1="64" x2="74" y2="94" /></g>
+            <g class="pose pose--match">
+              <line x1="50" y1="64" x2="80" y2="46" />
+              <line class="match-stick" x1="80" y1="46" x2="90" y2="28" />
+              <circle class="match-head" cx="91" cy="26" r="3.5" />
+              <ellipse class="match-flame" cx="92" cy="15" rx="5.5" ry="10" />
+            </g>
+            <g class="pose pose--wave"><line x1="50" y1="64" x2="80" y2="36" /></g>
+            <line class="leg-a" x1="50" y1="108" x2="30" y2="158" />
+            <line class="leg-b" x1="50" y1="108" x2="70" y2="158" />
+            <path class="smile" d="M42 34 Q50 40 58 34" />
+            <circle class="eye" cx="45" cy="27" r="2" />
+            <circle class="eye" cx="59" cy="27" r="2" />
+          </svg>
+        </span>
+      </button>
+
+      <div id="bubble" class="bubble" role="status" aria-live="polite" hidden></div>
+
+      <button id="reset" class="scene__reset" type="button">Blås ut lyset</button>
+    </section>
+
+    <!-- ============ RESTEN AV SIDEN ============ -->
+    <main class="content">
+      <section id="prosjekter" class="section">
+        <p class="section__kicker">Prosjekter</p>
+        <h2 class="section__title">Ting jeg har laget</h2>
+        <div class="cards">
+          <a class="card" href="#">
+            <span class="card__img" aria-hidden="true"></span>
+            <span class="card__tag">Spill</span>
+            <span class="card__title">[PROSJEKT 1]</span>
+            <span class="card__text">[Problem, din rolle, metode]</span>
+          </a>
+          <a class="card" href="#">
+            <span class="card__img" aria-hidden="true"></span>
+            <span class="card__tag">Læringsteknologi</span>
+            <span class="card__title">[PROSJEKT 2]</span>
+            <span class="card__text">[Problem, din rolle, metode]</span>
+          </a>
+          <a class="card" href="#">
+            <span class="card__img" aria-hidden="true"></span>
+            <span class="card__tag">Interaksjonsdesign</span>
+            <span class="card__title">[PROSJEKT 3]</span>
+            <span class="card__text">[Problem, din rolle, metode]</span>
+          </a>
+          <a class="card" href="#">
+            <span class="card__img" aria-hidden="true"></span>
+            <span class="card__tag">Master</span>
+            <span class="card__title">[PROSJEKT 4]</span>
+            <span class="card__text">[Problem, din rolle, metode]</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="om" class="section">
+        <p class="section__kicker">Om meg</p>
+        <h2 class="section__title">[EN KORT OVERSKRIFT OM DEG]</h2>
+        <p class="section__text">[Et par avsnitt om bakgrunnen din, hva som driver deg, og hva du ser etter.]</p>
+      </section>
+
+      <section id="kontakt" class="section">
+        <p class="section__kicker">Kontakt</p>
+        <h2 class="section__title">Si hei!</h2>
+        <div class="hero__actions hero__actions--left">
+          <a class="btn btn--primary" href="mailto:[DIN-EPOST]">Send e-post</a>
+          <a class="btn btn--tilt-r" href="[LINKEDIN-URL]">LinkedIn</a>
+          <a class="btn btn--tilt-l" href="[GITHUB-URL]">GitHub</a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
