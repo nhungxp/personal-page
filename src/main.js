@@ -48,8 +48,13 @@ const state = {
 };
 
 const size = () => ({ W: scene.clientWidth, H: scene.clientHeight });
-const home = () => ({ x: 84, y: size().H - 107 });
+// Stearinlyset står alltid nede i venstre hjørne (i px fra kanten)
+const CANDLE = { left: 70, bottom: 80 };
+const candlePx = () => ({ x: CANDLE.left, y: size().H - CANDLE.bottom });
+// Personen står ved siden av lyset
+const home = () => ({ x: 190, y: size().H - 107 });
 const toPx = (it) => {
+  if (it.id === 'candle') return candlePx();
   const { W, H } = size();
   return { x: (it.x * W) / 100, y: (it.y * H) / 100 };
 };
@@ -67,9 +72,6 @@ function shuffle(arr) {
 function makeLayout() {
   const slots = shuffle(SLOTS);
   const match = slots.splice(slots.findIndex((s) => s[0] > 50), 1)[0];
-  let ci = slots.findIndex((s) => Math.abs(s[0] - match[0]) + Math.abs(s[1] - match[1]) > 50);
-  if (ci < 0) ci = 0;
-  const candle = slots.splice(ci, 1)[0];
   const decoys = DECOYS.map((d, i) => ({
     ...d,
     x: slots[i][0],
@@ -78,7 +80,7 @@ function makeLayout() {
   }));
   return {
     match: { id: 'matches', x: match[0], y: match[1] },
-    candle: { id: 'candle', x: candle[0], y: candle[1] },
+    candle: { id: 'candle' },
     decoys,
   };
 }
@@ -101,9 +103,79 @@ function renderItems() {
     itemsEl.append(b);
   }
   place(matchesEl, state.layout.match);
-  place(candleEl, state.layout.candle);
-  scene.style.setProperty('--candle-x', `${state.layout.candle.x}%`);
-  scene.style.setProperty('--candle-y', `${state.layout.candle.y}%`);
+  candleEl.style.left = `${CANDLE.left}px`;
+  candleEl.style.top = `calc(100% - ${CANDLE.bottom}px)`;
+  scene.style.setProperty('--candle-x', `${CANDLE.left}px`);
+  scene.style.setProperty('--candle-y', `calc(100% - ${CANDLE.bottom}px)`);
+}
+
+// ---------- Skrivemaskin-effekt for introteksten ----------
+const hero = $('hjem');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const caret = document.createElement('span');
+caret.className = 'hero__caret';
+caret.setAttribute('aria-hidden', 'true');
+
+// Alle tekstbiter i introen (unntatt knappene), med full tekst lagret
+const typeNodes = (() => {
+  const nodes = [];
+  const walker = document.createTreeWalker(hero, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) =>
+      n.parentElement.closest('.hero__actions, svg') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+  });
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    nodes.push({
+      node: n,
+      full: n.textContent.replace(/\s+/g, ' '),
+      block: n.parentElement.closest('.hero > *'),
+    });
+  }
+  return nodes;
+})();
+
+let typeTimer = 0;
+function stopTyping() {
+  clearTimeout(typeTimer);
+  for (const t of typeNodes) t.node.textContent = t.full;
+  caret.remove();
+  hero.style.minHeight = '';
+  hero.classList.remove('is-typing');
+  hero.classList.add('is-typed');
+}
+
+function typeHero() {
+  clearTimeout(typeTimer);
+  if (reduceMotion.matches) return stopTyping();
+
+  // Hold av plass så teksten ikke hopper mens den skrives
+  hero.style.minHeight = `${hero.offsetHeight}px`;
+  hero.classList.remove('is-typed');
+  hero.classList.add('is-typing');
+  for (const t of typeNodes) t.node.textContent = '';
+
+  let i = 0;
+  let pos = 0;
+  const tick = () => {
+    while (i < typeNodes.length && pos >= typeNodes[i].full.length) {
+      i++;
+      pos = 0;
+    }
+    if (i >= typeNodes.length) {
+      typeTimer = setTimeout(stopTyping, 600);
+      return;
+    }
+    const t = typeNodes[i];
+    const ch = t.full[pos++];
+    t.node.textContent = t.full.slice(0, pos);
+    t.node.parentNode.insertBefore(caret, t.node.nextSibling);
+    // Litt menneskelig rytme: pause etter tegnsetting og nye avsnitt
+    let delay = 35 + Math.random() * 45;
+    if (/[.!?,]/.test(ch)) delay += 260;
+    if (pos === t.full.length && t.block !== typeNodes[i + 1]?.block) delay += 350;
+    typeTimer = setTimeout(tick, delay);
+  };
+  typeTimer = setTimeout(tick, 700); // vent til lyset har blusset opp
 }
 
 // ---------- Handlinger ----------
@@ -113,6 +185,7 @@ function say(text, ms = 0) {
 }
 
 function setStep(step) {
+  const wasLit = state.step === STEP.LIT;
   state.step = step;
   scene.dataset.step = String(step);
   const lit = step === STEP.LIT;
@@ -120,6 +193,9 @@ function setStep(step) {
   if (lit) {
     state.msg = null;
     state.dir = -1;
+    if (!wasLit) typeHero();
+  } else if (wasLit) {
+    stopTyping();
   }
 }
 
@@ -265,9 +341,6 @@ function draw() {
   } else if (s === STEP.DARK) {
     dark.style.background = 'rgba(7,6,5,0.985)';
   }
-
-  // Teller
-  counter.textContent = `Funnet ${state.found.size} av ${state.layout.decoys.length + 2}`;
 
   // Snakkeboble
   let text = '';

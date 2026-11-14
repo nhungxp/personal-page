@@ -27,9 +27,10 @@ export const LINES = {
 // Mulige plasseringer i prosent av skjermen [x, y].
 // Midten er holdt fri, der introteksten dukker opp.
 export const SLOTS = [
-  [9, 16], [19, 34], [10, 54], [89, 15], [81, 33], [91, 54], [33, 86],
-  [52, 90], [70, 86], [86, 79], [40, 11], [62, 10], [24, 72],
+  [9, 16], [19, 34], [10, 54], [89, 15], [81, 33], [91, 54], [36, 88],
+  [52, 90], [70, 86], [86, 79], [40, 11], [62, 10],
 ];
+// (Nede i venstre hjørne er holdt fritt – der står stearinlyset alltid.)
 
 // Strektegninger i samme stil som fyrstikkpersonen (viewBox 0 0 80 80).
 export const ICONS = {
