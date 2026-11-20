@@ -44,7 +44,6 @@
       <a id="skip" class="scene__skip" href="#hjem">Hopp over intro</a>
 
       <div id="hjem" class="hero">
-        <p class="hero__kicker">psst, du fant meg!</p>
         <h1 class="hero__title">
           Hei, jeg heter
           <span class="hero__name"
@@ -53,11 +52,11 @@
           >.
         </h1>
         <p class="hero__lead">
-          Masterstudent i informatikk ved NTNU, med fordypning i Interaction Design, Gaming and
-          Learning Technology. [EN SETNING OM HVA DU LIKER Å LAGE]
+          Masterstudent i informatikk ved NTNU, med fordypning i Interaksjonsdesing, Spill og 
+          Læringsteknologi. 
         </p>
         <div class="hero__actions">
-          <a class="btn btn--primary" href="#prosjekter">Se prosjektene</a>
+          <button id="seeProjects" class="btn btn--primary" type="button">Se prosjektene</button>
           <a class="btn btn--tilt-r" href="#om">Om meg</a>
           <a class="btn btn--tilt-l" href="#kontakt">Kontakt</a>
         </div>
@@ -90,15 +89,29 @@
 
       <div id="bubble" class="bubble" role="status" aria-live="polite" hidden></div>
 
+      <!-- Papirflyet med prosjektene (styres av src/main.js) -->
+      <button id="plane" class="plane" type="button" aria-label="Papirfly. Fang det for å se prosjektene" hidden>
+        <span class="plane__body">
+          <svg viewBox="0 0 120 70" width="96" height="56" aria-hidden="true">
+            <path class="plane__wing" d="M4 34 L116 6 L46 44 Z" />
+            <path class="plane__keel" d="M46 44 L116 6 L58 64 Z" />
+            <path class="plane__fold" d="M46 44 L52 58" />
+          </svg>
+        </span>
+      </button>
+
       <button id="reset" class="scene__reset" type="button">Blås ut lyset</button>
     </section>
 
     <!-- ============ RESTEN AV SIDEN ============ -->
-    <main class="content">
-      <section id="prosjekter" class="section">
-        <p class="section__kicker">Prosjekter</p>
-        <h2 class="section__title">Ting jeg har laget</h2>
-        <div class="cards">
+    <!-- ============ PROSJEKTENE: arket i papirflyet ============ -->
+    <dialog id="letter" class="letter" aria-labelledby="letterTitle">
+      <div class="letter__paper">
+        <button id="letterClose" class="letter__close" type="button" aria-label="Brett sammen arket">×</button>
+        <div class="letter__inner">
+          <p class="section__kicker">Du fanget det! Prosjekter</p>
+          <h2 id="letterTitle" class="section__title">Ting jeg har laget</h2>
+          <div class="cards">
           <a class="card" href="#">
             <span class="card__img" aria-hidden="true"></span>
             <span class="card__tag">Spill</span>
@@ -123,8 +136,12 @@
             <span class="card__title">[PROSJEKT 4]</span>
             <span class="card__text">[Problem, din rolle, metode]</span>
           </a>
+          </div>
         </div>
-      </section>
+      </div>
+    </dialog>
+
+    <main class="content">
 
       <section id="om" class="section">
         <p class="section__kicker">Om meg</p>

@@ -22,6 +22,9 @@ export const LINES = {
   walkingHome: 'Sånn, ja!',
   welcome: 'Nå ser jeg deg. Velkommen inn!',
   candleLit: 'Lyset brenner så lenge du er her.',
+  plane: 'Se, et papirfly! Fang det, så får du se prosjektene mine.',
+  planeDodge: 'Haha, det er raskt! Prøv igjen.',
+  planePoint: 'Prosjektene ligger i papirflyet. Fang det!',
 };
 
 // Mulige plasseringer i prosent av skjermen [x, y].

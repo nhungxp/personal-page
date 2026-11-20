@@ -3,7 +3,8 @@ import { DECOYS, ICONS, LINES, SLOTS } from './items.js';
 
 // ---------- Innstillinger ----------
 const CONFIG = {
-  speed: 4.5, // px per frame personen går
+  speed: 4.5, // px per frame personen går (minimum)
+  followRate: 0.2, // andel av avstanden til musa personen tar igjen per frame i mørket
   sight: 130, // hvor langt personen ser i mørket (px)
   touchRadius: 56, // hvor nær personen må være en ting for å "finne" den
   introMs: 5000, // hvor lenge første snakkeboble vises
@@ -28,6 +29,11 @@ const figure = $('figure');
 const figureBody = figure.querySelector('.figure__body');
 const bubble = $('bubble');
 const resetBtn = $('reset');
+const planeEl = $('plane');
+const planeBody = planeEl.querySelector('.plane__body');
+const letter = $('letter');
+const letterClose = $('letterClose');
+const seeProjects = $('seeProjects');
 
 // ---------- Tilstand ----------
 const state = {
@@ -222,7 +228,154 @@ function start() {
   say(LINES.intro, CONFIG.introMs);
 }
 
+// ---------- Papirflyet med prosjektene ----------
+// phase: off = borte, fly = svever ved kanten, caught = fanget/åpent
+const plane = {
+  phase: 'off',
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  t: 0,
+  face: -1,
+  offY: 0,
+  dodges: 0,
+  dodgeUntil: 0,
+  nextAt: 0,
+  wiggleUntil: 0,
+};
+const pointer = { x: -9999, y: -9999, mouse: false };
+
+function planeHome() {
+  const { W, H } = size();
+  const ax = Math.min(70, W * 0.1);
+  const cx = W - Math.max(80, Math.min(160, W * 0.16));
+  const cy = H * 0.36;
+  // Liten åttetallsbane
+  return { x: cx + Math.sin(plane.t * 0.9) * ax, y: cy + Math.sin(plane.t * 1.8) * 46 + plane.offY };
+}
+
+function updatePlane(now) {
+  if (state.step !== STEP.LIT) {
+    plane.phase = 'off';
+    return;
+  }
+  const { W } = size();
+  if (plane.phase === 'off') {
+    if (hero.classList.contains('is-typed') && now > plane.nextAt) {
+      plane.phase = 'fly';
+      plane.x = W + 120;
+      plane.y = size().H * 0.2;
+      plane.dodges = 0;
+      say(LINES.plane, 6000);
+    }
+    return;
+  }
+  if (plane.phase === 'caught') return;
+
+  if (!reduceMotion.matches) plane.t += 1 / 60;
+  // Unngå musa et par ganger, så blir det litt jakt
+  const near = Math.hypot(pointer.x - plane.x, pointer.y - plane.y) < 85;
+  if (pointer.mouse && near && plane.dodges < 2 && now > plane.dodgeUntil) {
+    plane.dodges++;
+    plane.dodgeUntil = now + 1100;
+    plane.offY = (plane.y > pointer.y ? 1 : -1) * 120;
+    if (plane.dodges === 1) say(LINES.planeDodge, 2500);
+  }
+  if (now > plane.dodgeUntil) plane.offY *= 0.96;
+  const { x: tx, y: ty } = planeHome();
+  const k = now < plane.dodgeUntil ? 0.12 : 0.05;
+  const nx = plane.x + (tx - plane.x) * k;
+  const ny = plane.y + (ty - plane.y) * k;
+  plane.vx = nx - plane.x;
+  plane.vy = ny - plane.y;
+  plane.x = nx;
+  plane.y = ny;
+  if (Math.abs(plane.vx) > 0.4) plane.face = plane.vx > 0 ? 1 : -1;
+}
+
+function drawPlane(now) {
+  const visible = plane.phase === 'fly';
+  planeEl.hidden = !visible;
+  if (!visible) return;
+  const tilt = Math.max(-28, Math.min(28, plane.vy * 6)) * plane.face;
+  const wiggle = now < plane.wiggleUntil ? Math.sin(now / 40) * 12 : 0;
+  planeEl.style.transform = `translate(${Math.round(plane.x - 62)}px, ${Math.round(plane.y - 42)}px)`;
+  planeBody.style.transform = `scaleX(${plane.face}) rotate(${tilt + wiggle}deg)`;
+}
+
+function catchPlane() {
+  if (plane.phase !== 'fly') return;
+  plane.phase = 'caught';
+  state.msg = null;
+
+  const open = () => {
+    planeEl.hidden = true;
+    letter.classList.remove('is-closing');
+    letter.showModal();
+    letterClose.focus();
+  };
+  if (reduceMotion.matches) return open();
+
+  // Flyet suser inn mot midten av skjermen før arket brettes ut
+  const r = scene.getBoundingClientRect();
+  const cx = window.innerWidth / 2 - r.left - 62;
+  const cy = window.innerHeight / 2 - r.top - 42;
+  const from = planeEl.style.transform;
+  planeBody.style.transform = 'scaleX(1) rotate(0deg)';
+  planeEl
+    .animate(
+      [
+        { transform: from },
+        { transform: `translate(${cx}px, ${cy}px) rotate(-360deg) scale(1.8)` },
+        { transform: `translate(${cx}px, ${cy}px) rotate(-360deg) scale(2.4, 0.4)`, opacity: 0.4 },
+      ],
+      { duration: 750, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' },
+    )
+    .finished.then(() => {
+      open();
+      planeEl.getAnimations().forEach((x) => x.cancel());
+    });
+}
+
+function closeLetter() {
+  if (!letter.open || letter.classList.contains('is-closing')) return;
+  const done = () => {
+    letter.classList.remove('is-closing');
+    letter.close();
+    plane.phase = 'off';
+    plane.nextAt = performance.now() + 2500;
+  };
+  if (reduceMotion.matches) return done();
+  letter.classList.add('is-closing');
+  letter.querySelector('.letter__paper').addEventListener('animationend', done, { once: true });
+}
+
+planeEl.addEventListener('click', catchPlane);
+letterClose.addEventListener('click', closeLetter);
+letter.addEventListener('cancel', (e) => {
+  e.preventDefault(); // Esc: brett sammen med animasjon
+  closeLetter();
+});
+letter.addEventListener('click', (e) => {
+  if (e.target === letter) closeLetter(); // klikk utenfor arket
+});
+seeProjects.addEventListener('click', () => {
+  if (plane.phase === 'off') plane.nextAt = 0; // kall på flyet med en gang
+  plane.wiggleUntil = performance.now() + 900;
+  say(LINES.planePoint, 4000);
+});
+window.addEventListener('pointermove', (e) => {
+  const r = scene.getBoundingClientRect();
+  pointer.x = e.clientX - r.left;
+  pointer.y = e.clientY - r.top;
+  pointer.mouse = e.pointerType === 'mouse';
+});
+
 function reset() {
+  if (letter.open) letter.close();
+  plane.phase = 'off';
+  plane.nextAt = 0;
   state.found.clear();
   state.touching = null;
   state.hinted = false;
@@ -267,7 +420,12 @@ function update(now) {
   const dx = t.x - state.x;
   const dy = t.y - state.y;
   const dist = Math.hypot(dx, dy);
-  const sp = CONFIG.speed;
+  // Uavhengig av skjermens bildefrekvens (1 = én frame på 60 Hz)
+  const dt = Math.min(3, (now - (state.lastNow ?? now)) / (1000 / 60)) || 1;
+  state.lastNow = now;
+  // Når man leter, tar personen igjen musa fortere jo lenger unna den er
+  const catchUp = searching ? dist * CONFIG.followRate : 0;
+  const sp = Math.max(CONFIG.speed, catchUp) * dt;
   if (dist <= sp) {
     state.x = t.x;
     state.y = t.y;
@@ -364,7 +522,9 @@ function draw() {
 
 function loop(now) {
   update(now);
+  updatePlane(now);
   draw();
+  drawPlane(now);
   requestAnimationFrame(loop);
 }
 
