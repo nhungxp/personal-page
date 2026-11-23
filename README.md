@@ -1,6 +1,6 @@
 # Nhung Pham · Portefølje
 
-En leken portefølje som starter i mørket: fyrstikkpersonen følger musa, leter etter fyrstikker blant tilfeldig plasserte ting, og tenner et stearinlys før introen dukker opp.
+En leken portefølje som starter på et stupebrett: man klikker for å sprette, stuper i havet på tredje hopp, og følger Nhung ned i dypet der siden åpner seg.
 
 Bygget med vanlig HTML, CSS og JavaScript, og [Vite](https://vite.dev) som utviklingsserver og byggverktøy.
 
@@ -19,36 +19,24 @@ npm run preview  # tester den ferdige versjonen lokalt
 
 | Hva | Fil |
 | --- | --- |
-| Tekst i introen, prosjekter, om meg, kontakt | `index.html` |
-| Tingene i mørket og hva personen sier | `src/items.js` |
-| Farger, fonter og utseende | `src/style.css` (øverst under `:root`) |
-| Fart, synsfelt, hint-timing | `src/main.js` (`CONFIG` øverst) |
-| Selve logikken (bevegelse, steg) | `src/main.js` |
+| Overskrift, prosjekter, om meg, kontakt | `index.html` |
+| Hva Nhung sier, instruksjonene på brettet | `src/main.js` (`HINTS`, boblene i `render()` og `lines` i klikk-funksjonen) |
+| Farge på svømmeføtter og snorkel | `src/style.css` (`--fin`, `--fin-dark`, `--fin-light` under `#stage`) |
+| Farger, fonter og utseende ellers | `src/style.css` |
+| Rekkefølge og timing i stupet | `src/main.js` (tidene i klikk-funksjonen for stupebrettet) |
 
 Tekst i [HAKEPARENTESER] er plassholdere du bytter ut.
 
-### Legge til en ny ting i mørket
-
-1. Tegn et ikon i `ICONS` i `src/items.js` (SVG-innhold med `viewBox="0 0 80 80"`, bare streker).
-2. Legg til en linje i `DECOYS` med `id`, `icon`, `name` og `msg`.
-3. Pass på at det finnes nok plasser i `SLOTS` (minst antall ting + 2).
-
 ## Slik fungerer det
 
-- `data-step` på `#scene` styrer stegene: `0` mørkt, `1` leter, `2` har fyrstikk, `3` lyset er tent. CSS-en viser og skjuler ting ut fra dette.
-- `src/main.js` kjører en `requestAnimationFrame`-løkke som flytter personen mot musa, sjekker om den står på en ting, og tegner "synsfeltet" som en `radial-gradient` over mørket.
-- Plasseringen trekkes på nytt hver gang siden lastes.
-- "Hopp over intro" går rett til steg 3, og `prefers-reduced-motion` skrur av animasjoner.
+- `src/main.js` holder én tilstand (`state`) og en `render()`-funksjon som setter `data-phase` på `#stage`: `ready` (på brettet), `dive` (i lufta), `sink` (ned i dypet) og `site` (siden er åpen).
+- CSS-en flytter "kameraet" ved å skyve lagene oppover når `data-deep="1"`. Lagene beveger seg i ulik fart, så det føles som dybde.
+- Hoppene, stupet og svømmeturen er CSS-animasjoner med mange små steg, så bevegelsene blir myke.
+- Siden er låst for scrolling til man har stupt. Etterpå kan man scrolle ned til prosjekter, om meg og kontakt.
+- "Hopp over intro" går rett ned i dypet, og `prefers-reduced-motion` skrur av de fleste animasjonene.
 
-## Publisere gratis
+## Publisere
 
-**GitHub Pages:** kjør `npm run build` og publiser innholdet i `dist/` (for eksempel med GitHub Actions eller pakken `gh-pages`). `vite.config.js` bruker relative stier, så det fungerer også under `brukernavn.github.io/repo-navn/`.
+**Netlify:** `netlify.toml` er satt opp med byggkommando `npm run build` og mappe `dist`, så siden bygges automatisk når `main` oppdateres.
 
-**Netlify / Vercel:** koble til GitHub-repoet, sett byggkommando `npm run build` og mappe `dist`.
-
-## Ideer videre
-
-- Lyd: fyrstikk som tennes, skritt, knitrende lys (med av/på-knapp)
-- Blås ut lyset med mikrofonen
-- Huske besøkende ("Velkommen tilbake! Lyset brenner fortsatt.")
-- Egne case-sider for hvert prosjekt
+**GitHub Pages:** kjør `npm run build` og publiser innholdet i `dist/`. `vite.config.js` bruker relative stier, så det fungerer også under `brukernavn.github.io/repo-navn/`.
